@@ -2,7 +2,7 @@
 Скрипт для установки драйвера принтера Linux CAPT для принтеров Canon LBP на ALT Linux
 ### Установка
 ```
-wget https://github.com/ArtemPlus/canon_printer/raw/master/canon_lbp_setup.sh
+wget https://github.com/ArtemPlus/alt_canon_printer/raw/master/canon_lbp_setup.sh
 chmod +x canon_lbp_setup.sh
 ./canon_lbp_setup.sh
 ```
