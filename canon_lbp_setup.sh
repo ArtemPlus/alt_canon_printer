@@ -10,9 +10,9 @@
 #Check if we are running as root
 [ $USER != 'root' ] && exec sudo "$0"
 
-#Current user
 LOGIN_USER=$(logname)
 [ -z "$LOGIN_USER" ] && LOGIN_USER=$(who | head -1 | awk '{print $1}')
+
 
 #Load the file containing the path to the desktop
 if [ -f ~/.config/user-dirs.dirs ]; then
@@ -26,14 +26,20 @@ DRIVER_VERSION='2.71-1'
 DRIVER_VERSION_COMMON='3.21-1'
 
 #Links to driver packages
-declare -A URL_DRIVER=([amd64_common]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/cndrvcups-common_3.21-1_amd64.deb' \
-[amd64_capt]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/cndrvcups-capt_2.71-1_amd64.deb' \
-[i386_common]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/cndrvcups-common_3.21-1_i386.deb' \
-[i386_capt]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/cndrvcups-capt_2.71-1_i386.deb')
+# declare -A URL_DRIVER=([amd64_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.x86_64.rpm' \
+# [amd64_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.x86_64.rpm' \
+# [i386_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.i386.rpm' \
+# [i386_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.i386.rpm')
+declare -A URL_DRIVER=([amd64_common]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.x86_64.rpm' \
+[amd64_capt]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.x86_64.rpm' \
+[i386_common]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.i386.rpm' \
+[i386_capt]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.i386.rpm')
 
 #Links to autoshutdowntool
-declare -A URL_ASDT=([amd64]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_amd64_deb.tar.gz' \
-[i386]='https://github.com/hieplpvip/canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_deb.tar.gz')
+# declare -A URL_ASDT=([amd64]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_x86_64_rpm.tar.gz' \
+#  [i386]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_rpm.tar.gz')
+declare -A URL_ASDT=([amd64]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_amd64_rpm.tar.gz' \
+[i386]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_rpm.tar.gz')
 
 #ppd files and printer models mapping
 declare -A LASERSHOT=([LBP-810]=1120 [LBP1120]=1120 [LBP1210]=1210 \
@@ -105,7 +111,7 @@ function canon_uninstall() {
 			echo "Closing captstatusui"
 			killall captstatusui 2> /dev/null
 			echo 'Stopping ccpd'
-			service ccpd stop
+			systemctl stop ccpd
 			echo 'Removing the printer from the ccpd daemon configuration file'
 			ccpdadmin -x $installed_model
 			echo 'Removing the printer from CUPS'
@@ -113,16 +119,15 @@ function canon_uninstall() {
 		fi
 	fi
 	echo 'Removing driver packages'
-	dpkg --purge cndrvcups-capt
-	dpkg --purge cndrvcups-common
+	apt-get -y remove cndrvcups-capt
+	apt-get -y remove cndrvcups-common
 	echo 'Removing unused libraries and packages'
-	apt-get -y autoremove
 	echo 'Deleting settings'
 	[ -f /etc/init/ccpd-start.conf ] && rm /etc/init/ccpd-start.conf
 	[ -f /etc/udev/rules.d/85-canon-capt.rules ] && rm /etc/udev/rules.d/85-canon-capt.rules
 	[ -f "${XDG_DESKTOP_DIR}/captstatusui.desktop" ] && rm "${XDG_DESKTOP_DIR}/captstatusui.desktop"
 	[ -f /usr/bin/autoshutdowntool ] && rm /usr/bin/autoshutdowntool
-	[ $INIT_SYSTEM == 'systemd' ] && update-rc.d -f ccpd remove
+	[ $INIT_SYSTEM == 'systemd' ] && systemctl disable ccpd
 	echo 'Uninstall completed'
 	echo 'Press any key to exit'
 	read -s -n1
@@ -175,107 +180,37 @@ function canon_install() {
 		fi
 	done
 	echo '************Driver Installation************'
-	COMMON_FILE=cndrvcups-common_${DRIVER_VERSION_COMMON}_${ARCH}.deb
-	CAPT_FILE=cndrvcups-capt_${DRIVER_VERSION}_${ARCH}.deb
+	COMMON_FILE=cndrvcups-common_${DRIVER_VERSION_COMMON}_${ARCH}.rpm
+	CAPT_FILE=cndrvcups-capt_${DRIVER_VERSION}_${ARCH}.rpm
 	if [ ! -f $COMMON_FILE ]; then
 		sudo -u $LOGIN_USER wget -O $COMMON_FILE ${URL_DRIVER[${ARCH}_common]}
 		check_error WGET $? $COMMON_FILE
-	fi
-	if [ ! -f $CAPT_FILE ]; then
 		sudo -u $LOGIN_USER wget -O $CAPT_FILE ${URL_DRIVER[${ARCH}_capt]}
 		check_error WGET $? $CAPT_FILE
 	fi
 	apt-get -y update
-	apt-get -y install libglade2-0 libcanberra-gtk-module
+	apt-get -y install libglade libcanberra
 	check_error PACKAGE $?
 	echo 'Installing common module for CUPS driver'
-	dpkg -i $COMMON_FILE
+	rpm -Uvh --force $COMMON_FILE
 	check_error PACKAGE $? $COMMON_FILE
 	echo 'Installing CAPT Printer Driver Module'
-	dpkg -i $CAPT_FILE
+	rpm -Uvh --force $CAPT_FILE
 	check_error PACKAGE $? $CAPT_FILE
-	#Replace /etc/init.d/ccpd
-	echo '#!/bin/bash
-# startup script for Canon Printer Daemon for CUPS (ccpd)
-### BEGIN INIT INFO
-# Provides:          ccpd
-# Required-Start:    $local_fs $remote_fs $syslog $network $named
-# Should-Start:      $ALL
-# Required-Stop:     $syslog $remote_fs
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Description:       Start Canon Printer Daemon for CUPS
-### END INIT INFO
 
-# If the CUPS print server is not running, wait until it starts
-if [ `ps awx | grep cupsd | grep -v grep | wc -l` -eq 0 ]; then
-	while [ `ps awx | grep cupsd | grep -v grep | wc -l` -eq 0 ]
-	do
-		sleep 3
-	done
-	sleep 5
-fi
-
-ccpd_start ()
-{
-	echo -n "Starting ${DAEMON}: "
-	start-stop-daemon --start --quiet --oknodo --exec ${DAEMON}
-}
-
-ccpd_stop ()
-{
-	echo -n "Shutting down ${DAEMON}: "
-	start-stop-daemon --stop --quiet --oknodo --retry TERM/30/KILL/5 --exec ${DAEMON}
-}
-
-DAEMON=/usr/sbin/ccpd
-case $1 in
-	start)
-		ccpd_start
-		;;
-	stop)
-		ccpd_stop
-		;;
-	status)
-		echo "${DAEMON}:" $(pidof ${DAEMON})
-		;;
-	restart)
-		while true
-		do
-			ccpd_stop
-			ccpd_start
-			# if the ccpd process does not appear after 5 seconds, we restart it again
-			for (( i = 1 ; i <= 5 ; i++ ))
-			do
-				sleep 1
-				set -- $(pidof ${DAEMON})
-				[ -n "$1" -a -n "$2" ] && exit 0
-			done
-		done
-		;;
-	*)
-		echo "Usage: ccpd {start|stop|status|restart}"
-		exit 1
-		;;
-esac
-exit 0' > /etc/init.d/ccpd
-	#Installation utilities for managing AppArmor
-	apt-get -y install apparmor-utils
-	#Set AppArmor security profile for cupsd to complain mode
-	aa-complain /usr/sbin/cupsd
 	echo 'Restarting CUPS'
-	service cups restart
+	systemctl restart cups || service cups restart
 	if [ $ARCH == 'amd64' ]; then
 		echo 'Installing 32-bit libraries required to run 64-bit printer driver'
-		apt-get -y install libatk1.0-0:i386 libcairo2:i386 libgtk2.0-0:i386 libpango1.0-0:i386 libstdc++6:i386 libpopt0:i386 libxml2:i386 libc6:i386
+		apt-get -y install libatk libcairo libgtk+2 libpango libstdc++6 libpopt libxml2 glibc
 		check_error PACKAGE $?
 	fi
 	echo 'Installing the printer in CUPS'
-	/usr/sbin/lpadmin -p $NAMEPRINTER -P /usr/share/cups/model/CNCUPSLBP${LASERSHOT[$NAMEPRINTER]}CAPTK.ppd -v ccp://localhost:59687 -E
+	lpadmin -p $NAMEPRINTER -P /usr/share/cups/model/CNCUPSLBP${LASERSHOT[$NAMEPRINTER]}CAPTK.ppd -v ccp://localhost:59687 -E
 	echo "Setting $NAMEPRINTER as the default printer"
-	/usr/sbin/lpadmin -d $NAMEPRINTER
+	lpadmin -d $NAMEPRINTER
 	echo 'Registering the printer in the ccpd daemon configuration file'
-	/usr/sbin/ccpdadmin -p $NAMEPRINTER -o $PATH_DEVICE
+	ccpdadmin -p $NAMEPRINTER -o $PATH_DEVICE
 	#Verify printer installation
 	installed_printer=$(ccpdadmin | grep $NAMEPRINTER | awk '{print $3}')
 	if [ -n "$installed_printer" ]; then
@@ -293,18 +228,10 @@ exit 0' > /etc/init.d/ccpd
 			done
 		fi
 		echo -e "\e[2KRunning ccpd"
-		service ccpd restart
+		systemctl restart ccpd || service ccpd restart
 		#Autoload ccpd
 		if [ $INIT_SYSTEM == 'systemd' ]; then
-			update-rc.d ccpd defaults
-		else
-			echo 'description "Canon Printer Daemon for CUPS (ccpd)"
-author "LinuxMania <customer@linuxmania.jp>"
-start on (started cups and runlevel [2345])
-stop on runlevel [016]
-expect fork
-respawn
-exec /usr/sbin/ccpd start' > /etc/init/ccpd-start.conf
+			systemctl enable ccpd
 		fi
 		#Create captstatusui shortcut on desktop
 		echo '#!/usr/bin/env xdg-open
@@ -315,9 +242,9 @@ GenericName=Status monitor for Canon CAPT Printer
 Exec=captstatusui -P '$NAMEPRINTER'
 Terminal=false
 Type=Application
-Icon=/usr/share/icons/Humanity/devices/48/printer.svg' > "${XDG_DESKTOP_DIR}/$NAMEPRINTER.desktop"
-		chmod 775 "${XDG_DESKTOP_DIR}/$NAMEPRINTER.desktop"
-		chown $LOGIN_USER:$LOGIN_USER "${XDG_DESKTOP_DIR}/$NAMEPRINTER.desktop"
+Icon=/usr/share/icons/Humanity/devices/48/printer.svg' > "/home/tov_major/Рабочий стол/$NAMEPRINTER.desktop"
+		chmod 775 "/home/tov_major/Рабочий стол/$NAMEPRINTER.desktop"
+		chown $LOGIN_USER:$LOGIN_USER "/home/tov_major/Рабочий стол/$NAMEPRINTER.desktop"
 		#Install autoshutdowntool for supported models
 		if [[ "${!ASDT_SUPPORTED_MODELS[@]}" =~ "$NAMEPRINTER" ]]; then
 			SERIALRANGE=(${ASDT_SUPPORTED_MODELS[$NAMEPRINTER]})
@@ -325,7 +252,7 @@ Icon=/usr/share/icons/Humanity/devices/48/printer.svg' > "${XDG_DESKTOP_DIR}/$NA
 			SERIALMAX=${SERIALRANGE[1]}
 			if [[ ${#PRINTER_SERIAL} -eq ${#SERIALMIN} && $PRINTER_SERIAL > $SERIALMIN && $PRINTER_SERIAL < $SERIALMAX || $PRINTER_SERIAL == $SERIALMIN || $PRINTER_SERIAL == $SERIALMAX ]]; then
 				echo "Installing the autoshutdowntool utility"
-				ASDT_FILE=autoshutdowntool_1.00-1_${ARCH}_deb.tar.gz
+				ASDT_FILE=autoshutdowntool_1.00-1_${ARCH}_rpm.tar.gz
 				if [ ! -f $ASDT_FILE ]; then
 					wget -O $ASDT_FILE ${URL_ASDT[$ARCH]}
 					check_error WGET $? $ASDT_FILE
@@ -376,7 +303,7 @@ logsave log.txt ./canon_lbp_setup.sh
 }
 
 clear
-echo 'Installing the Linux CAPT Printer Driver v'${DRIVER_VERSION}' for Canon LBP printers on Ubuntu (both 32-bit and 64-bit)
+echo 'Installing the Linux CAPT Printer Driver v'${DRIVER_VERSION}' for Canon LBP printers on Alt Linux)
 Supported printers:'
 echo "$NAMESPRINTERS" | sed ':a; /$/N; s/\n/, /; ta' | fold -s
 
