@@ -1,14 +1,14 @@
-## Canon LBP printers drivers installer for Ubuntu
-Script for installing the Linux CAPT Printer Driver for Canon LBP printers on Ubuntu (both 32-bit and 64-bit)
-### Install
+## Canon LBP драйвер для Alt Linux
+Скрипт для установки драйвера принтера Linux CAPT для принтеров Canon LBP на ALT Linux
+### Установка
 ```
-wget https://github.com/hieplpvip/canon_printer/raw/master/canon_lbp_setup.sh
+wget https://github.com/ArtemPlus/canon_printer/raw/master/canon_lbp_setup.sh
 chmod +x canon_lbp_setup.sh
 ./canon_lbp_setup.sh
 ```
-### Notes
-After installation, there will be a shortcut on your Desktop. Run it to check your printer status (if it shows "Ready to Print", the printer is ready to use)
-### Supported Models
+### Примечание
+После установки на рабочем столе появится Desktop файл. Запустите его, чтобы проверить статус принтера
+### Поддерживаемые модели
 - LBP-810
 - LBP1120
 - LBP1210
@@ -44,5 +44,5 @@ After installation, there will be a shortcut on your Desktop. Run it to check yo
 - LBP7210C
 - LBP9100C
 - LBP9200C
-### Original Script
+### Оригинальный скрипт
 http://help.ubuntu.ru/wiki/canon_capt
