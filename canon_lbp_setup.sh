@@ -26,20 +26,15 @@ DRIVER_VERSION='2.71-1'
 DRIVER_VERSION_COMMON='3.21-1'
 
 #Links to driver packages
-# declare -A URL_DRIVER=([amd64_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.x86_64.rpm' \
-# [amd64_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.x86_64.rpm' \
-# [i386_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.i386.rpm' \
-# [i386_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.i386.rpm')
-declare -A URL_DRIVER=([amd64_common]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.x86_64.rpm' \
-[amd64_capt]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.x86_64.rpm' \
-[i386_common]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.i386.rpm' \
-[i386_capt]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.i386.rpm')
+declare -A URL_DRIVER=([amd64_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.x86_64.rpm' \
+[amd64_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.x86_64.rpm' \
+[i386_common]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-common-3.21-1.i386.rpm' \
+[i386_capt]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/cndrvcups-capt-2.71-1.i386.rpm')
+
 
 #Links to autoshutdowntool
-# declare -A URL_ASDT=([amd64]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_x86_64_rpm.tar.gz' \
-#  [i386]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_rpm.tar.gz')
-declare -A URL_ASDT=([amd64]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_amd64_rpm.tar.gz' \
-[i386]='https://github.com/germelmann/fedora_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_rpm.tar.gz')
+declare -A URL_ASDT=([amd64]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_x86_64_rpm.tar.gz' \
+ [i386]='https://github.com/ArtemPlus/alt_canon_printer/raw/master/Packages/autoshutdowntool_1.00-1_i386_rpm.tar.gz')
 
 #ppd files and printer models mapping
 declare -A LASERSHOT=([LBP-810]=1120 [LBP1120]=1120 [LBP1210]=1210 \
